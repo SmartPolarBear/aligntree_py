@@ -27,6 +27,13 @@ if __name__ == '__main__':
     print("Read {}".format(input_file))
     points = read_laz_point_cloud(input_file)
 
+    print("Construct point cloud")
+    original = o3d.geometry.PointCloud()
+    original.points = o3d.utility.Vector3dVector(points)
+
     output_file: str = str(args.output)
-    print("Write numpy file {}".format(output_file))
-    np.save(output_file, points)
+    print("Write file {}".format(output_file))
+    if output_file.endswith('npy'):
+        np.save(output_file, points)
+    else:
+        o3d.io.write_point_cloud(output_file, pointcloud=original, print_progress=True)
