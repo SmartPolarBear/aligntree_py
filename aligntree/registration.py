@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from aligntree.preprocess import stem_mapping
 from aligntree.stems import construct_triangles, triangle_local_matching, triangle_global_matching
-from aligntree.utils import compute_rigid
+from aligntree.utils import compute_rigid, point_to_pcd, view_points
 
 
 def registrate(src_pcd, target_pcd, k=5, epsilon_edge=5):
@@ -32,7 +32,14 @@ def registrate(src_pcd, target_pcd, k=5, epsilon_edge=5):
 
     p = np.array([m[0] for m in matched_pts])
     q = np.array([m[1] for m in matched_pts])
+    #
+    # p1 = point_to_pcd(p)
+    # p1.colors = o3d.utility.Vector3dVector([[0, 0, i * 2] for i, p in enumerate(p)])
+    # p2 = point_to_pcd(q)
+    # p2.colors = o3d.utility.Vector3dVector([[i * 2, 0, 0] for i, p in enumerate(p)])
+    #
+    # o3d.visualization.draw_geometries([p1, p2])
 
-    r, t = compute_rigid(p, q)
+    T, r, t = compute_rigid(q, p)
 
-    return r, t
+    return T

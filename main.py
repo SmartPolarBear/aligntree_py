@@ -57,7 +57,13 @@ tgt: o3d.geometry.PointCloud = o3d.io.read_point_cloud("data/base_cloud.pcd", fo
 
 # o3d.visualization.draw_geometries([tgt])
 
-trans = registrate(src, tgt)
+# trans = o3d_registrate(src, tgt, 5)
 # print(trans)
-#
-# draw_registration_result(src, tgt, trans)
+
+
+trans = registrate(src, tgt)
+print(trans)
+
+# trans0 = np.asarray([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+
+draw_registration_result(src, tgt, trans)

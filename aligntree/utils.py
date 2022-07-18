@@ -53,11 +53,21 @@ def get_d_local(a, b, epsilon_edge):
             return False, np.inf, None
         ret += np.abs(ea - eb)
 
-    cors_edges = set()
+    cors_edges = list()
+    set_all = {0, 1, 2, 3, 4, 5}
     for ea, eb in zip(sidx_a, sidx_b):
-        cors_edges.add((EDGE_MAP[ea][0], EDGE_MAP[eb][0]))
-        cors_edges.add((EDGE_MAP[ea][1], EDGE_MAP[eb][1]))
-    cors_edges = list(cors_edges)
+        set_eq = {EDGE_MAP[ea][0], EDGE_MAP[ea][1], EDGE_MAP[eb][0] + 3, EDGE_MAP[eb][1] + 3}
+        intersect = set_all - set_eq
+        intersect = list(intersect)
+        l = intersect[0]
+        r = intersect[1]
+        if l > 2:
+            l -= 3
+        if r > 2:
+            r -= 3
+
+        cors_edges.append((l, r))
+
     cors_edges = list([(a[p[0]], b[p[1]]) for p in cors_edges])
 
     return True, ret, cors_edges
@@ -83,24 +93,46 @@ def get_d_global(p1, p2):
 
     return ret
 
+def compute_rigid(A, B):
+    '''
+    Calculates the least-squares best-fit transform that maps corresponding points A to B in m spatial dimensions
+    Input:
+      A: Nxm numpy array of corresponding points
+      B: Nxm numpy array of corresponding points
+    Returns:
+      T: (m+1)x(m+1) homogeneous transformation matrix that maps A on to B
+      R: mxm rotation matrix
+      t: mx1 translation vector
+    '''
 
-def compute_rigid(P, Q):
-    assert P.shape == Q.shape
-    n, dim = P.shape
+    assert A.shape == B.shape
 
-    centeredP = P - P.mean(axis=0)
-    centeredQ = Q - Q.mean(axis=0)
+    # get number of dimensions
+    m = A.shape[1]
 
-    C = np.dot(np.transpose(centeredP), centeredQ) / n
+    # translate points to their centroids
+    centroid_A = np.mean(A, axis=0)
+    centroid_B = np.mean(B, axis=0)
+    AA = A - centroid_A
+    BB = B - centroid_B
 
-    V, S, W = np.linalg.svd(C)
+    # rotation matrix
+    H = np.dot(AA.T, BB)
+    U, S, Vt = np.linalg.svd(H)
+    R = np.dot(Vt.T, U.T)
 
-    if np.linalg.det(V) * np.linalg.det(W) < 0.0:
-        S[-1] = -S[-1]
-        V[:, -1] = -V[:, -1]
+    # special reflection case
+    if np.linalg.det(R) < 0:
+       Vt[m-1,:] *= -1
+       R = np.dot(Vt.T, U.T)
 
-    R = np.dot(V, W)
+    # translation
+    t = centroid_B.T - np.dot(R,centroid_A.T)
 
-    t = Q.mean(axis=0) - P.mean(axis=0).dot(R)
+    # homogeneous transformation
+    T = np.identity(m+1)
+    T[:m, :m] = R
+    T[:m, m] = t
 
-    return R, t
+    return T, R, t
+
