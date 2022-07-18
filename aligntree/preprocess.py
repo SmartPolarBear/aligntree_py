@@ -32,6 +32,6 @@ def stem_mapping(pcd: o3d.geometry.PointCloud, lmbd=0.9):
 
     tree_model_info = [[i['model'][0], i['model'][1], i['model'][2]] for i in tt.finalstems]
     stems = np.array(tree_model_info)
-    print(stems)
+    # print(stems)
     # view_points(stems)
     return stems
