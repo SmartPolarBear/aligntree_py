@@ -1,5 +1,5 @@
 class Stems:
-    def __init__(self,pcd,stems):
+    def __init__(self, pcd, stems):
         ...
 
     def relations(self):

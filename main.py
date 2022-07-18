@@ -55,7 +55,9 @@ src: o3d.geometry.PointCloud = o3d.io.read_point_cloud("data/base_cloud_rotated.
 
 tgt: o3d.geometry.PointCloud = o3d.io.read_point_cloud("data/base_cloud.pcd", format='pcd')
 
-trans = o3d_registrate(src, tgt, voxel_size=1)
-print(trans)
+# o3d.visualization.draw_geometries([tgt])
 
-draw_registration_result(src, tgt, trans)
+trans = registrate(src, tgt)
+# print(trans)
+#
+# draw_registration_result(src, tgt, trans)
