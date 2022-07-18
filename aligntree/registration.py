@@ -1,7 +1,7 @@
 import open3d as o3d
 
 from aligntree.preprocess import stem_mapping
-from aligntree.stems import construct_triangles, triangle_local_matching
+from aligntree.stems import construct_triangles, triangle_local_matching, triangle_global_matching
 
 
 def registrate(src_pcd, target_pcd, k=5, epsilon_edge=5):
@@ -14,6 +14,13 @@ def registrate(src_pcd, target_pcd, k=5, epsilon_edge=5):
 
     print("triangles:", len(triangles_src), len(triangles_tgt))
 
-    local_matched = triangle_local_matching(triangles_src, triangles_tgt, epsilon_edge=epsilon_edge)
+    local_matched, c_pts = triangle_local_matching(triangles_src, triangles_tgt, epsilon_edge=epsilon_edge)
 
     print("local matched:", len(local_matched))
+
+    largest_consensus = triangle_global_matching(triangles_src, triangles_tgt, local_matched, epsilon_edge=epsilon_edge)
+
+    print("global matched:", len(largest_consensus))
+
+    matched_pts = [c_pts[i] for i in largest_consensus]
+    print(matched_pts[0])

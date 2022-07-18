@@ -1,8 +1,9 @@
 import open3d as o3d
 import numpy as np
 import itertools
+from tqdm import tqdm
 
-from aligntree.utils import point_to_pcd, triangle_same
+from aligntree.utils import point_to_pcd, get_d_local, get_d_global
 
 
 def construct_triangles(stems, k):
@@ -28,17 +29,40 @@ def construct_triangles(stems, k):
 
 def triangle_local_matching(t_src, t_tgt, epsilon_edge):
     ret = list()
-    for ti, t in enumerate(t_tgt):
+    cpts_ret = list()
+    for ti, t in tqdm(enumerate(t_tgt)):
         min_dlocal = np.inf
         match_t = -1
+        c_edges = None
         for si, s in enumerate(t_src):
-            matched, dlocal = triangle_same(t, s, epsilon_edge)
+            matched, dlocal, ce = get_d_local(t, s, epsilon_edge)
             if matched:
                 if dlocal < min_dlocal:
                     min_dlocal = dlocal
                     match_t = si
+                    c_edges = ce
 
         if match_t >= 0:
-            ret.append((t, match_t))
+            ret.append((ti, match_t))
+            cpts_ret.append(c_edges)
 
-    return ret
+    return ret, cpts_ret
+
+
+def triangle_global_matching(t_src, t_tgt, local, epsilon_edge):
+    largest = list()
+    for uiidx, ui in tqdm(enumerate(local)):
+        consensus_set = list()
+        consensus_set.append(uiidx)
+        for ujidx, uj in enumerate(local):
+            if uiidx == ujidx:
+                continue
+            # print(ui, uj)
+            d_global = get_d_global((t_tgt[ui[0]], t_src[ui[1]]), (t_tgt[uj[0]], t_src[uj[1]]))
+            if d_global < epsilon_edge:
+                consensus_set.append(ujidx)
+
+        if len(consensus_set) > len(largest):
+            largest = consensus_set
+
+    return largest
