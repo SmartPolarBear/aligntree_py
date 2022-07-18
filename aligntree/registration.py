@@ -1,7 +1,11 @@
 import open3d as o3d
+import numpy as np
+
+from tqdm import tqdm
 
 from aligntree.preprocess import stem_mapping
 from aligntree.stems import construct_triangles, triangle_local_matching, triangle_global_matching
+from aligntree.utils import compute_rigid
 
 
 def registrate(src_pcd, target_pcd, k=5, epsilon_edge=5):
@@ -22,5 +26,13 @@ def registrate(src_pcd, target_pcd, k=5, epsilon_edge=5):
 
     print("global matched:", len(largest_consensus))
 
-    matched_pts = [c_pts[i] for i in largest_consensus]
-    print(matched_pts[0])
+    matched_pts = list()
+    for c in tqdm(largest_consensus):
+        matched_pts += c_pts[c]
+
+    p = np.array([m[0] for m in matched_pts])
+    q = np.array([m[1] for m in matched_pts])
+
+    r, t = compute_rigid(p, q)
+
+    return r, t

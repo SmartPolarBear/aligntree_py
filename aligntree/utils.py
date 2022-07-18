@@ -94,17 +94,13 @@ def compute_rigid(P, Q):
     C = np.dot(np.transpose(centeredP), centeredQ) / n
 
     V, S, W = np.linalg.svd(C)
-    d = (np.linalg.det(V) * np.linalg.det(W)) < 0.0
 
-    if d:
+    if np.linalg.det(V) * np.linalg.det(W) < 0.0:
         S[-1] = -S[-1]
         V[:, -1] = -V[:, -1]
 
     R = np.dot(V, W)
 
-    varP = np.var(a1, axis=0).sum()
-    c = 1 / varP * np.sum(S)  # scale factor
+    t = Q.mean(axis=0) - P.mean(axis=0).dot(R)
 
-    t = Q.mean(axis=0) - P.mean(axis=0).dot(c * R)
-
-    return c, R, t
+    return R, t
